@@ -1,0 +1,356 @@
+POST my_index/_analyze
+{
+  "analyzer": "my_custom_analyzer",
+  "text": "Is this <b>déjà vu</b>?"
+}
+
+DELETE keyword_marker_example
+
+DELETE my_index
+
+DELETE test1
+
+DELETE test
+
+PUT loca_test
+{
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "location": {
+          "type": "geo_point"
+        }
+      }
+    }
+  }
+}
+
+PUT loca_test/_doc/1
+{
+  "text": "Geo-point as an object",
+  "location": { 
+    "lat": 1.11,
+    "lon": 1.10
+  }
+}
+
+PUT loca_test/_doc/2
+{
+  "text": "Geo-point as a string",
+  "location": "1.11,1.10" 
+}
+
+PUT loca_test/_doc/3
+{
+  "text": "Geo-point as a geohash",
+  "location": "drm3btev3e86" 
+}
+
+PUT loca_test/_doc/4
+{
+  "text": "Geo-point as an array",
+  "location": [ -71.34, 41.12 ] 
+}
+
+
+GET loca_test/_search
+{
+  "query": {
+    "geo_bounding_box": { 
+      "location": {
+        "top_left": {
+          "lat": 42,
+          "lon": -74
+        },
+        "bottom_right": {
+          "lat": 40,
+          "lon": -72
+        }
+      }
+    }
+  }
+}
+
+GET loca_test/_search
+{
+  "query": {
+    "geo_bounding_box": { 
+      "location": {
+        "top_right": {
+          "lat": 2,
+          "lon": 2
+        },
+        "bottom_left": {
+          "lat": 1,
+          "lon": 1
+        }
+      }
+    }
+  }
+}
+
+
+PUT /example
+{
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "location": {
+                    "type": "geo_shape"
+                }
+            }
+        }
+    }
+}
+
+
+POST /example/_doc?refresh
+{
+    "name": "Wind & Wetter, Berlin, Germany",
+    "location": {
+        "type": "point",
+        "coordinates": [3, 4]
+    }
+}
+
+
+GET /example/_search
+{
+    "query":{
+        "bool": {
+            "must": {
+                "match_all": {}
+            },
+            "filter": {
+                "geo_shape": {
+                    "location": {
+                        "shape": {
+                            "type": "envelope",
+                            "coordinates" : [[5,5], [3,3]]
+                        },
+                        "relation": "within"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+GET /_search
+{
+    "query": {
+        "bool" : {
+            "must" : {
+                "match_all" : {}
+            },
+            "filter" : {
+                "geo_bounding_box" : {
+                    "location" : {
+                        "top_left" : {
+                            "lat" : 40.73,
+                            "lon" : -74.1
+                        },
+                        "bottom_right" : {
+                            "lat" : 40.01,
+                            "lon" : -71.12
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+GET /example/_search
+{
+    "query": {
+        "bool": {
+            "filter": {
+                "geo_shape": {
+                    "location": {
+                        "indexed_shape": {
+                            "index": "shapes",
+                            "type": "_doc",
+                            "id": "deu",
+                            "path": "location"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+DELETE  /example
+
+
+PUT /example
+{
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "location": {
+                    "type": "geo_shape"
+                }
+            }
+        }
+    }
+}
+
+
+
+POST /example/_doc?refresh
+{
+    "name": "Wind & Wetter, Berlin, Germany",
+    "location": {
+        "type": "point",
+        "coordinates": [13.400544, 52.530286]
+    }
+}
+
+
+
+GET /example/_search
+{
+    "query":{
+        "bool": {
+            "must": {
+                "match_all": {}
+            },
+            "filter": {
+                "geo_shape": {
+                    "location": {
+                        "shape": {
+                            "type": "envelope",
+                            "coordinates" : [[13.0, 53.0], [14.0, 52.0]]
+                        },
+                        "relation": "within"
+                    }
+                }
+            }
+        }
+    }
+}
+
+DELETE  my_locations
+
+PUT /my_locations
+{
+    "mappings": {
+        "_doc": {
+          "_source":{
+          "enabled":true
+          },
+          "properties": {
+              "location": {
+                  "type": "geo_point"
+                }
+            }
+        }
+    }
+}
+
+PUT /my_locations/_doc/1
+{
+  "location" : {
+    "lat" : 40.12,
+    "lon" : -71.34
+    }
+}
+
+GET /my_locations/_search
+{
+    "query": {
+        "bool" : {
+            "must" : {
+                "match_all" : {}
+            },
+            "filter" : {
+                "geo_distance" : {
+                    "distance" : "200km",
+                    "location" : {
+                        "lat" : 40,
+                        "lon" : -70
+                    }
+                }
+            }
+        }
+    },
+    "_source":"location.lat"
+}
+
+GET /my_locations/_search
+{
+    "query": {
+        "bool" : {
+            "must" : {
+                "match_all" : {}
+            },
+            "filter" : {
+                "geo_distance" : {
+                    "distance" : "12km",
+                    "location" : {
+                        "lat" : 40,
+                        "lon" : -70
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+PUT chinses
+
+POST chinses/full/_mapping
+{
+        "properties": {
+            "content": {
+                "type": "text",
+                "analyzer": "ik_max_word",
+                "search_analyzer": "ik_max_word"
+            }
+        }
+
+}
+
+POST chinses/full/
+{
+  "content":"??????????????"
+}
+POST chinses/full/
+{"content":"???:??????????"}
+POST chinses/full/
+{"content":"????????:???????1?????"}
+POST chinses/full/
+{"content":"???????????????? ?????"}
+
+
+
+POST chinses/full/_search
+{
+
+    "query" : { "match" : { "content" : "???" }},
+
+    "highlight" : {
+
+        "pre_tags" : ["<tag1>", "<tag2>"],
+
+        "post_tags" : ["</tag1>", "</tag2>"],
+
+        "fields" : {
+
+            "content" : {}
+
+        }
+
+    }
+
+}

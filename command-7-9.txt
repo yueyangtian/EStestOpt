@@ -1,0 +1,657 @@
+**************************************************************
+PUT test/production/_mapping
+{
+    "production": {
+        "properties": {
+            "time":{"type":"date"},
+            "tran_count":{"type":"integer"}
+            "products": {"type": "nested"}
+        }
+    }
+}
+*********************************************************
+POST test/production/1
+{
+  "time": "2018-07-06",
+  "tran_count":15
+  "products": [
+        {"prod_name": "table", "price": 1224, "desp": "a good flat table with large area, I can easily host a 10 people party"},
+        {"prod_name": "desk", "price": 380, "desp": "My son likes it. The height can change according to children's height"}
+    ]
+}
+***********************************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "must": { 
+                  "term":{"products.desp":"good"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 30,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1.6630104,
+    "hits": [
+      {
+        "_index": "test",
+        "_type": "production",
+        "_id": "1",
+        "_score": 1.6630104,
+        "_source": {
+          "time": "2018-07-06",
+          "tran_count": 15,
+          "products": [
+            {
+              "prod_name": "table",
+              "price": 1224,
+              "desp": "a good flat table with large area, I can easily host a 10 people party"
+            },
+            {
+              "prod_name": "desk",
+              "price": 380,
+              "desp": "My son likes it. The height can change according to children's height"
+            }
+          ]
+        },
+        "inner_hits": {
+          "products": {
+            "hits": {
+              "total": 1,
+              "max_score": 0.66301036,
+              "hits": [
+                {
+                  "_index": "test",
+                  "_type": "production",
+                  "_id": "1",
+                  "_nested": {
+                    "field": "products",
+                    "offset": 0
+                  },
+                  "_score": 0.66301036,
+                  "_source": {
+                    "prod_name": "table",
+                    "price": 1224,
+                    "desp": "a good flat table with large area, I can easily host a 10 people party"
+                  },
+                  "highlight": {
+                    "products.desp": [
+                      "a <em>good</em> flat table with large area, I can easily host a 10 people party"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+
+*************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "must":[
+          {"term":{"tran_count":1}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "must": { 
+                  "term":{"products.desp":"good"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+
+RES:
+{
+  "took": 15,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 0,
+    "max_score": null,
+    "hits": []
+  }
+}
+*********************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "filter":
+          {
+            "range": 
+              { "time": 
+                {"gte":"2019-01-01" }
+              }
+          },
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "must": { 
+                  "term":{"products.desp":"good"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 13,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 0,
+    "max_score": null,
+    "hits": []
+  }
+}
+**************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "filter":
+          {
+            "range": 
+              { "time": 
+                {"gte":"2018-01-01" }
+              }
+          },
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "must": { 
+                  "term":{"products.desp":"good"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 22,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1.6630104,
+    "hits": [
+      {
+        "_index": "test",
+        "_type": "production",
+        "_id": "1",
+        "_score": 1.6630104,
+        "_source": {
+          "time": "2018-07-06",
+          "tran_count": 15,
+          "products": [
+            {
+              "prod_name": "table",
+              "price": 1224,
+              "desp": "a good flat table with large area, I can easily host a 10 people party"
+            },
+            {
+              "prod_name": "desk",
+              "price": 380,
+              "desp": "My son likes it. The height can change according to children's height"
+            }
+          ]
+        },
+        "inner_hits": {
+          "products": {
+            "hits": {
+              "total": 1,
+              "max_score": 0.66301036,
+              "hits": [
+                {
+                  "_index": "test",
+                  "_type": "production",
+                  "_id": "1",
+                  "_nested": {
+                    "field": "products",
+                    "offset": 0
+                  },
+                  "_score": 0.66301036,
+                  "_source": {
+                    "prod_name": "table",
+                    "price": 1224,
+                    "desp": "a good flat table with large area, I can easily host a 10 people party"
+                  },
+                  "highlight": {
+                    "products.desp": [
+                      "a <em>good</em> flat table with large area, I can easily host a 10 people party"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+***********************************************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "filter":{
+            "range": { 
+                "time": {"gte":"2018-01-01" }
+              }
+          },
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "filter":{
+                  "range":{
+                    "products.price":{"gte":2000}
+                  }
+                },
+                "must": { 
+                  "term":{"products.desp":"good"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 22,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 0,
+    "max_score": null,
+    "hits": []
+  }
+}
+******************************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "filter":{
+            "range": { 
+                "time": {"gte":"2018-01-01" }
+              }
+          },
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "filter":{
+                  "range":{
+                    "products.price":{"gte":1000}
+                  }
+                },
+                "must": { 
+                  "term":{"products.desp":"good"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 12,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1.6630104,
+    "hits": [
+      {
+        "_index": "test",
+        "_type": "production",
+        "_id": "1",
+        "_score": 1.6630104,
+        "_source": {
+          "time": "2018-07-06",
+          "tran_count": 15,
+          "products": [
+            {
+              "prod_name": "table",
+              "price": 1224,
+              "desp": "a good flat table with large area, I can easily host a 10 people party"
+            },
+            {
+              "prod_name": "desk",
+              "price": 380,
+              "desp": "My son likes it. The height can change according to children's height"
+            }
+          ]
+        },
+        "inner_hits": {
+          "products": {
+            "hits": {
+              "total": 1,
+              "max_score": 0.66301036,
+              "hits": [
+                {
+                  "_index": "test",
+                  "_type": "production",
+                  "_id": "1",
+                  "_nested": {
+                    "field": "products",
+                    "offset": 0
+                  },
+                  "_score": 0.66301036,
+                  "_source": {
+                    "prod_name": "table",
+                    "price": 1224,
+                    "desp": "a good flat table with large area, I can easily host a 10 people party"
+                  },
+                  "highlight": {
+                    "products.desp": [
+                      "a <em>good</em> flat table with large area, I can easily host a 10 people party"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+********************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "filter":{
+            "range": { 
+                "time": {"gte":"2018-01-01" }
+              }
+          },
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "filter":{
+                  "range":{
+                    "products.price":{"gte":1000}
+                  }
+                },
+                "must": { 
+                  "term":{"products.desp":"good"}
+              },
+              "must_not":{
+                "term":{"products.desp":"11"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 25,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1.6630104,
+    "hits": [
+      {
+        "_index": "test",
+        "_type": "production",
+        "_id": "1",
+        "_score": 1.6630104,
+        "_source": {
+          "time": "2018-07-06",
+          "tran_count": 15,
+          "products": [
+            {
+              "prod_name": "table",
+              "price": 1224,
+              "desp": "a good flat table with large area, I can easily host a 10 people party"
+            },
+            {
+              "prod_name": "desk",
+              "price": 380,
+              "desp": "My son likes it. The height can change according to children's height"
+            }
+          ]
+        },
+        "inner_hits": {
+          "products": {
+            "hits": {
+              "total": 1,
+              "max_score": 0.66301036,
+              "hits": [
+                {
+                  "_index": "test",
+                  "_type": "production",
+                  "_id": "1",
+                  "_nested": {
+                    "field": "products",
+                    "offset": 0
+                  },
+                  "_score": 0.66301036,
+                  "_source": {
+                    "prod_name": "table",
+                    "price": 1224,
+                    "desp": "a good flat table with large area, I can easily host a 10 people party"
+                  },
+                  "highlight": {
+                    "products.desp": [
+                      "a <em>good</em> flat table with large area, I can easily host a 10 people party"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+*******************************************
+GET test/production/_search
+{
+  "query": {
+      "bool":{
+        "filter":{
+            "range": { 
+                "time": {"gte":"2018-01-01" }
+              }
+          },
+        "must":[
+          {"term":{"tran_count":15}},
+          {"nested": {
+            "path": "products",
+            "query": {
+              "bool": {
+                "filter":{
+                  "range":{
+                    "products.price":{"gte":1000}
+                  }
+                },
+                "must": { 
+                  "term":{"products.desp":"good"}
+              },
+              "must_not":{
+                "term":{"products.desp":"10"}
+              }
+            }
+          },
+          "inner_hits": { 
+            "highlight": {
+              "fields": {
+                "products.desp": {}
+              }
+            }
+          }
+        }
+      }]
+    }
+  }
+}
+RES:
+{
+  "took": 7,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 0,
+    "max_score": null,
+    "hits": []
+  }
+}
+*****************************************
+*****************************************
+PUT test1/doc/_mapping
+{
+    "doc": {
+        "properties": {
+            "song":{"type":"text"}
+        }
+    }
+}
